@@ -1,0 +1,76 @@
+﻿@page "/itemList"
+    @using Microsoft.AspNetCore.SignalR.Client
+    @using Blazor_Server_Crud.Data
+    @using System.Globalization
+    @inject NavigationManager NavigationManager
+    @inject HttpClient Http
+    <h3>Student Details</h3>
+    <p>
+        <a href="/addItems">Add new Student</a>
+    </p>
+    @if (items == null)
+    {
+        <p>Loading....</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Rate</th>
+                    <th>Manufacture Date</th>
+                    <th>Expire Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in items)
+                {
+                <tr>
+                    <td>@item.itemName</td>
+                    <td>@item.itemRate</td>
+                    <td>@item.eDate?.ToString("dd-M-yyyy")</td>
+                    <td>@item.mDate?.ToString("dd-M-yyyy")</td>
+                    <td>
+                        <a href="/editItem/@item.itemId">Edit</a>
+                        <a href="/deleteItem/@item.itemId">Delete</a>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @code{
+
+        itemDetail[] items;
+        private HubConnection hubConnection;
+        protected override async Task OnInitializedAsync()
+        {
+            hubConnection = new HubConnectionBuilder()
+               .WithUrl(NavigationManager.ToAbsoluteUri("/itemHub"))
+               .Build();
+
+            hubConnection.On("ReceiveMessage", () =>
+            {
+            //CallLoadData(); for blazor WebAssembly
+            LoadData();
+                StateHasChanged();
+            });
+
+            await hubConnection.StartAsync();
+            LoadData();
+        }
+
+        protected async void LoadData()
+        {
+
+            items = await Http.GetJsonAsync<itemDetail[]>("http://localhost:55449/api/itemDetails");
+            StateHasChanged();
+        }
+
+        public void Dispose()
+        {
+            _ = hubConnection.DisposeAsync();
+        }
+    }

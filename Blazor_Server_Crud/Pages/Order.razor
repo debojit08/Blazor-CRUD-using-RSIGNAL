@@ -1,0 +1,85 @@
+﻿@page "/addOrder"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Blazor_Server_Crud.Data
+@using Syncfusion.Blazor.DropDowns
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+<h3>Order</h3>
+
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="form-group">
+            <label for="itemName" class="control-label">Name</label>
+            <SfDropDownList TItem="itemDetail" TValue="string" Placeholder="--select item--">
+                <DropDownListFieldSettings Text="itemName" Value="itemName"></DropDownListFieldSettings>
+
+                <SfDataManager Url="http://localhost:55449/api/itemDetails/"
+                               Adaptor="Syncfusion.Blazor.Adaptors.WebApiAdaptor"
+                               CrossDomain="true">
+                </SfDataManager>
+
+
+            </SfDropDownList>
+        </div>
+    </div>
+</div>
+@if (items == null)
+{
+    <p>Loading....</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Rate</th>
+                <th>Manufacture Date</th>
+                <th>Expire Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td @bind="@item.itemName">@item.itemName</td>
+                    <td @bind="@item.itemRate">@item.itemRate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    itemDetail[] items;
+
+
+    @* itemDetail item = new itemDetail();
+
+        private HubConnection hubConnection;
+
+        [Parameter]
+        public string id { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            item = await Http.GetJsonAsync<itemDetail>("http://localhost:55449/api/itemDetails/" + id);
+            hubConnection = new HubConnectionBuilder()
+               .WithUrl(NavigationManager.ToAbsoluteUri("/EmpHub"))
+               .Build();
+
+            await hubConnection.StartAsync();
+        }
+
+        public bool IsConnected =>
+            hubConnection.State == HubConnectionState.Connected;
+
+        Task SendMessage() => hubConnection.SendAsync("SendMessage");
+
+        public void Dispose()
+        {
+            _ = hubConnection.DisposeAsync();
+        }*@
+}

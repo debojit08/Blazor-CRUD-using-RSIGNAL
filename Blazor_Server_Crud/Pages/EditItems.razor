@@ -1,0 +1,97 @@
+﻿@page "/editItem/{id}"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Blazor_Server_Crud.Data
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<h3>AddEmp</h3>
+
+<form>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label for="itemName" class="control-label">Name</label>
+                <input for="itemName" class="form-control" id="t1" @bind="@item.itemName" required />
+            </div>
+
+            <div class="form-group">
+                <label for="itemRate" class="control-label">Rate</label>
+                <input for="itemRate" class="form-control" @bind="@item.itemRate" />
+
+                @*<SfDropDownList TItem="courseInfo" TValue="string" Placeholder="--select course--" @bind-Value="@std.course">
+                        <DropDownListFieldSettings Text="courseName" Value="courseName"></DropDownListFieldSettings>
+                        <SfDataManager Url="http://localhost:55366/api/courseinfoes"
+                                       Adaptor="Syncfusion.Blazor.Adaptors.WebApiAdaptor"
+                                       CrossDomain="true">
+                        </SfDataManager>
+
+
+                    </SfDropDownList>*@
+            </div>
+
+
+            <div class="form-group">
+                <label for="mDate" class="control-label">Manufacture Date</label>
+                <input type="date" class="form-control" @bind="@item.mDate" />
+            </div>
+            <div class="form-group">
+                <label for="eDate" class="control-label">Expire Date</label>
+                <input type="date" class="form-control" @bind="@item.eDate" />
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <input type="button" class="btn btn-primary" @onclick="@UpdateItem" value="Update" />
+                <input type="button" class="btn" @onclick="@Cancel" value="Cancel" />
+
+            </div>
+        </div>
+    </div>
+</form>
+
+@code {
+
+    itemDetail item = new itemDetail();
+    private HubConnection hubConnection;
+
+    [Parameter]
+    public string id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        item = await Http.GetJsonAsync<itemDetail>("http://localhost:55449/api/itemDetails/" + id);
+        hubConnection = new HubConnectionBuilder()
+           .WithUrl(NavigationManager.ToAbsoluteUri("/EmpHub"))
+           .Build();
+
+        await hubConnection.StartAsync();
+    }
+
+    public bool IsConnected =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    public async Task UpdateItem()
+    {
+        await Http.PutJsonAsync("http://localhost:55449/api/itemDetails/" +id, item);
+        if (IsConnected) await SendMessage();
+        NavigationManager.NavigateTo("itemList");
+
+    }
+
+    Task SendMessage() => hubConnection.SendAsync("SendMessage");
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("itemList");
+    }
+
+
+    public void Dispose()
+    {
+        _ = hubConnection.DisposeAsync();
+    }
+}

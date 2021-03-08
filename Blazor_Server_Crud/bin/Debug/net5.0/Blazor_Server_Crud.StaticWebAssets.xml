@@ -1,0 +1,4 @@
+﻿<StaticWebAssets Version="1.0">
+  <ContentRoot BasePath="/" Path="E:\Asp_Project\Blazor_Server_Crud\Blazor_Server_Crud\obj\Debug\net5.0\scopedcss\bundle\" />
+  <ContentRoot BasePath="_content/Syncfusion.Blazor" Path="C:\Users\Debojit Paul\.nuget\packages\syncfusion.blazor\18.4.0.43\build\..\staticwebassets\" />
+</StaticWebAssets>

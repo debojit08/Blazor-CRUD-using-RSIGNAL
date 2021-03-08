@@ -1,0 +1,74 @@
+﻿@page "/employeeList"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Blazor_Server_Crud.Data
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+<h3>Student Details</h3>
+<p>
+    <a href="/addEmp">Add new Student</a>
+</p>
+@if (empList == null)
+{
+    <p>Loading....</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var emp in empList)
+            {
+                <tr>
+                    <td>@emp.empName</td>
+                    <td>@emp.designation</td>
+                    <td>@emp.department</td>
+                    <td>
+                        <a href="/editstudent/@emp.empId">Edit</a>
+                        <a href="/deletestudent/@emp.empId">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code{
+
+    empInfo[] empList;
+    private HubConnection hubConnection;
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+           .WithUrl(NavigationManager.ToAbsoluteUri("/EmpHub"))
+           .Build();
+
+        hubConnection.On("ReceiveMessage", () =>
+        {
+            //CallLoadData(); for blazor WebAssembly
+            LoadData();
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+        LoadData();
+    }
+
+    protected async void LoadData()
+    {
+
+        empList = await Http.GetJsonAsync<empInfo[]>("http://localhost:55449/api/empInfoes");
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _ = hubConnection.DisposeAsync();
+    }
+}

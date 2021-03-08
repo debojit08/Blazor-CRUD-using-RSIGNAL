@@ -1,0 +1,90 @@
+﻿@page "/addEmp"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Blazor_Server_Crud.Data
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<h3>AddEmp</h3>
+
+<form>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label for="empName" class="control-label">Name</label>
+                <input for="empName" class="form-control" id="t1" @bind="@emp.empName" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="designation" class="control-label">Designation</label>
+                <input for="designation" class="form-control" @bind="@emp.designation" />
+
+                @*<SfDropDownList TItem="courseInfo" TValue="string" Placeholder="--select course--" @bind-Value="@std.course">
+                        <DropDownListFieldSettings Text="courseName" Value="courseName"></DropDownListFieldSettings>
+                        <SfDataManager Url="http://localhost:55366/api/courseinfoes"
+                                       Adaptor="Syncfusion.Blazor.Adaptors.WebApiAdaptor"
+                                       CrossDomain="true">
+                        </SfDataManager>
+
+
+                    </SfDropDownList>*@
+            </div>
+
+
+            <div class="form-group">
+                <label for="department" class="control-label">Department</label>
+                <input for="department" class="form-control" @bind="@emp.department" />
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <input type="button" class="btn btn-primary" @onclick="@CreateEmp" value="save" />
+                <input type="button" class="btn" @onclick="@Cancel" value="Cancel" />
+                
+            </div>
+        </div>
+    </div>
+</form>
+
+@code {
+
+    empInfo emp = new empInfo();
+    private HubConnection hubConnection;
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+           .WithUrl(NavigationManager.ToAbsoluteUri("/EmpHub"))
+           .Build();
+
+        await hubConnection.StartAsync();
+    }
+
+    public bool IsConnected =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    public async Task CreateEmp()
+        {
+        await Http.PostJsonAsync("http://localhost:55449/api/empInfoes", emp);
+        if (IsConnected) await SendMessage();
+        NavigationManager.NavigateTo("employeeList");
+
+        }
+
+        
+
+        Task SendMessage() => hubConnection.SendAsync("SendMessage");
+
+        void Cancel()
+        {
+            NavigationManager.NavigateTo("employeeList");
+        }
+
+
+        public void Dispose()
+        {
+            _ = hubConnection.DisposeAsync();
+        }
+    }
